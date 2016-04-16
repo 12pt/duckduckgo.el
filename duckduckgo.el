@@ -71,31 +71,15 @@
   "Limit the JSON response to the fields in ddg.com/API. Everything is accessible unmodified in 'JSON.
 Remove null or empty values from the new alist. Also make 'Type of Instant Answer human readable."
 
-  ;; can we refactor this?
-  (defun add-to-list-if-exist (tag alist blist)
-    "Adds the (assoc 'tag alist) to blist only if the assoc'd cdr has a meaningful value."
-    (let* ((ia-pair (assoc tag alist))
-           (tail (cdr ia-pair)))
-      (when (and (when (stringp tail) (not (= 0 (length tail))))
-                 tail)
-        (add-to-list blist ia-pair))))
-
   (let* ((answertypes `(("A" . "article")
                         ("C" . "category")
                         ("D" . "disambiguation")
                         ("E" . "exclusive")
                         ("N" . "name")))
-         (trimmed-alist `(()))
-         ;; there are tags in the response that don't appear on the API page. I've included missing
-         ;; sensible ones in this list but if you want something special then use 'JSON.
-         (tags '(Abstract AbstractText AbstractSource AbstractURL Image Heading
-                          Answer AnswerType Definition DefinitionSource DefinitionURL
-                          RelatedTopics Results Type Redirect ImageHeight ImageWidth))
+         (trimmed-alist (rassq-delete-all "" (copy-alist response)))
 
          (type (assoc-default 'Type response))
          (readable-type (assoc-default type answertypes)))
-    (mapc (lambda (tag) (add-to-list-if-exist tag response 'trimmed-alist))
-          tags)
     ;; shadow 'Type with the more human readable version.
     (add-to-list 'trimmed-alist (cons 'Type readable-type))
     (add-to-list 'trimmed-alist (cons 'JSON response))
