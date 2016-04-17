@@ -23,8 +23,10 @@
 
 ;;; Commentary:
 
-;; You should always be able to find the latest version here at <URL:http://github.com/horsemd/duckduckgo/>.
-
+;; You should always be able to find the latest version here at <URL:http://github.com/12pt/duckduckgo/>.
+;; See the DuckDuckGo Instant Answer API at <URL:https://duckduckgo.com/api/> for a list of fields. There
+;; are more fields than listed there, however, so you may find it useful to inspect the result of
+;; duckduckgo-search yourself. 
 
 ;; Usage:
 
@@ -67,27 +69,21 @@
     (prog1 (json-read)
       (kill-buffer buff))))
 
-(defun clean-up-response (response)
-  "Limit the JSON response to the fields in ddg.com/API. Everything is accessible unmodified in 'JSON.
-Remove null or empty values from the new alist. Also make 'Type of Instant Answer human readable."
-
+(defun ddg-clean-response (response)
+  "Replace 'Type with something more human readable."
   (let* ((answertypes `(("A" . "article")
                         ("C" . "category")
                         ("D" . "disambiguation")
                         ("E" . "exclusive")
                         ("N" . "name")))
-         (trimmed-alist (rassq-delete-all "" (copy-alist response)))
-
-         (type (assoc-default 'Type response))
+         (type          (assoc-default 'Type response))
          (readable-type (assoc-default type answertypes)))
     ;; shadow 'Type with the more human readable version.
-    (add-to-list 'trimmed-alist (cons 'Type readable-type))
-    (add-to-list 'trimmed-alist (cons 'JSON response))
-    trimmed-alist))
+    (add-to-list 'response (cons 'Type readable-type))))
 
 (defun duckduckgo-search (query &optional skip-disambiguation no-html no-redirect)
-  "Actually perform the search.
-TODO: !bang commands break, return a \"json-read: JSON readtable error\"."
+  "Actually perform the search. 
+TODO: !bang commands should set no-redirect to true."
   (let ((url-request-extra-headers `(("Content-Type" . "application/json")
                                      ("Referer" . ,duckduckgo-useragent)))
         (args `(("q" . ,query)
@@ -98,16 +94,17 @@ TODO: !bang commands break, return a \"json-read: JSON readtable error\"."
       (add-to-list 'args (cons "no_html" "1")))
     (when no-redirect
       (add-to-list 'args (cons "no_redirect" "1")))
-    (duckduckgo-response
-     (url-retrieve-synchronously
-      (format
-       duckduckgo-api-url
-       (mapconcat (lambda (cons)
-                    (format "%s=%s"
-                            (url-hexify-string (car cons))
-                            (url-hexify-string (cdr cons))))
-                  args
-                  "&"))))))
+    (ddg-clean-response
+     (duckduckgo-response
+      (url-retrieve-synchronously
+       (format
+        duckduckgo-api-url
+        (mapconcat (lambda (params)
+                     (format "%s=%s"
+                             (url-hexify-string (car params))
+                             (url-hexify-string (cdr params))))
+                   args
+                   "&")))))))
 
 (provide 'duckduckgo)
 ;;; duckduckgo.el ends here
