@@ -4,6 +4,7 @@
 
 ;; Author: 12pt
 ;; URL: https://github.com/12pt/duckduckgo.el
+;; Version: 0.0.1
 ;; Keywords: ddg duckduckgo instant answers
 
 ;; This file is not part of GNU Emacs.
@@ -23,7 +24,7 @@
 
 ;;; Commentary:
 
-;; You should always be able to find the latest version here at <URL:http://github.com/12pt/duckduckgo/>.
+;; You should always be able to find the latest version here at <URL:http://github.com/12pt/duckduckgo.el/>.
 ;; See the DuckDuckGo Instant Answer API at <URL:https://duckduckgo.com/api/> for a list of fields. There
 ;; are more fields than listed there, however, so you may find it useful to inspect the result of
 ;; duckduckgo-search yourself. 
@@ -44,19 +45,21 @@
 (require 'json)
 (require 'url)
 
-;; magic 
+;; magic
 (defvar url-http-end-of-headers)
 
 (defgroup duckduckgo nil
   "Emacs interface to DuckDuckGo's Instant Answers API."
-  :group 'tools)
+  :group 'tools
+	:prefix "duckduckgo-"
+	:link '(url-link :tag "GitHub" "https://github.com/12pt/duckduckgo.el"))
 
 (defcustom duckduckgo-api-url "https://api.duckduckgo.com/?%s"
   "The API to use when querying DDG. By default it uses https."
   :type '(string)
   :group 'duckduckgo)
 
-(defcustom duckduckgo-useragent "duckduckgo.el"
+(defcustom duckduckgo-useragent "duckduckgo.el v0.0.1"
   "User agent to query the API with."
   :type '(string)
   :group 'duckduckgo)
